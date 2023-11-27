@@ -1,12 +1,12 @@
 package algo.assign;
 
+import java.util.Scanner;
+
 /**
  * Written By Hemraj Rana
  * Student ID: M23W7252
  */
-import java.util.Scanner;
-
-public class Bisection {
+public class NewtonRaphson {
 	// just formats equation in human readable form
 	private static void displayEquation(double[] coef) {
 		System.out.printf("\nPolynomial equation: ");
@@ -37,9 +37,8 @@ public class Bisection {
 	}
 	
 	// computes polynomial function when x is given
-	private static double f(double[] coef,  double x) {
+	private static double f(double x, double[] coef) {
 		// f(x) = (coef[i] * x^deg) + (coef[i + 1] x^(deg - 1)) + ... +  (coef[deg - 2] x^2) + coef[deg -1]
-
 		double r = 0;
 
 		for(int i = 0, j = coef.length - 1; i < coef.length; i++, j--) {
@@ -49,28 +48,28 @@ public class Bisection {
 		return r;
 	}
 	
-	private static double bisectionMethod(double[] coef, double start, double end, double tolerance) {
-		double mid, value;
-		
-		do {
-			mid = (start + end) / 2.0;
-			value = f(coef, mid);
-
-			if(value >= (-1 * tolerance) && value <= tolerance) {
-				break; // mid is root
-			} else if(f(coef, start)  * value < 0) { 
-				end = mid;
-			} else {
-				start = mid;
-			}
-		} while(Math.abs(start - end) > tolerance);
-		
-		return mid;
+	// newton-raphson method
+	private static double newtonRaphson(double x, double[] f, double[] fi) {
+		return x - (f(x, f) / f(x, fi));
 	}
 	
+	// gives derivative
+	private static double[] derivative(double[] coef) {
+		double[] newCoef = new double[coef.length - 1];
+		
+		for(int i = 0, j = coef.length - 1; i < coef.length - 1; i++, j--) {
+			newCoef[i] = coef[i] * j;
+		}
+		
+		return newCoef;
+	}
+
 	public static void main(String[] args) {
+		// inputs: continuous function, initial root guess, precision
 		double[] coef;
-		double a, b, tolerance = 0.000001; // interval and tolernace
+		double x, // for root approximation
+			   x0, // for initial guess
+			   tolerance = 0.000001; // initial root guess and tolerance
 		
 		System.out.println("Enter degree of the polynomial equation:");
 
@@ -85,19 +84,23 @@ public class Bisection {
 		
 		displayEquation(coef);
 
-		System.out.println("Enter start of interval:");
-		a = scan.nextDouble();
-		System.out.println("Enter end of interval:");
-		b = scan.nextDouble();
-
-		// use default tolerance
-		 System.out.println("Enter tolerance: (e.g.: 0.0001)");
-		 tolerance = scan.nextDouble();
+		System.out.println("Enter initial root guess: (If too far, it may fail)");
+		x0 = scan.nextDouble();
 		
-		double root = bisectionMethod(coef, a, b, tolerance);
-		System.out.printf("Root is %f", root);
+		// System.out.println("Enter tolerance: (e.g.: 0.0001)");
+		// tolerance = scan.nextDouble();
 		
-
+		double val;
+		double[] coefi = derivative(coef);;
+		
+		do {
+			val = f(x0, coef);
+			if(Math.abs(val) < tolerance) break;
+			x = newtonRaphson(x0, coef, coefi);
+			x0 = x;
+		} while(Math.abs(val) > tolerance);
+		
+		System.out.printf("Root is %f (Approximation)", x0);
 		scan.close();
 	}
 
